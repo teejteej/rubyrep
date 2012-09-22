@@ -13,7 +13,7 @@ module RR
       unless @table_cache[database]
         @table_cache[database] = session.send(database).tables
       end
-      printf "%p %p: %p\n", Thread.current.object_id, database, @table_cache[database]
+      printf "### Thread: %p %p: %p\n", Thread.current.object_id, database, @table_cache[database]
       @table_cache[database]
     end
 
