@@ -65,8 +65,12 @@ module RR
       end
       connection = DummyActiveRecord.connection
       
+      printf "### Thread: %p db_connect_without_cache connection_id: %p\n", Thread.current.object_id, connection.id
+      
       # Delete the database connection from ActiveRecords's 'memory'
-      ActiveRecord::Base.connection_handler.connection_pools.delete DummyActiveRecord.name
+      #ActiveRecord::Base.connection_handler.connection_pools.delete DummyActiveRecord.name
+      
+      ActiveRecord::Base.connection_handler.connection_pools.delete_if {|k,v| true}
       
       extender = ""
       if RUBY_PLATFORM =~ /java/

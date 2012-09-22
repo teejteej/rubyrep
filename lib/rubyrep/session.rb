@@ -125,6 +125,7 @@ module RR
       unreachable = true
       Thread.new do
         begin
+          printf "%p database_unreachable?\n", Thread.current.object_id
           if send(database) && send(database).select_one("select 1+1 as x")['x'].to_i == 2
             unreachable = false # database is actually reachable
           end
@@ -144,6 +145,7 @@ module RR
     # * +database+: the target database (either :+left+ or :+right+)
     def disconnect_database(database)
       proxy, connection = @proxies[database], @connections[database]
+      printf "%p disconnect_database connection_id: %p\n", Thread.current.object_id, connection.connection.id
       @proxies[database] = nil
       @connections[database] = nil
       if proxy
@@ -164,6 +166,7 @@ module RR
     # * +options+: A options hash with the following settings
     #   * :+forced+: if +true+, always establish a new database connection
     def refresh_database_connection(database, options)
+      printf "%p refresh_database_connection\n", Thread.current.object_id
       if options[:forced] or database_unreachable?(database)
         # step 1: disconnect both database connection (if still possible)
         begin
@@ -211,7 +214,7 @@ module RR
           @proxies[database] = DatabaseProxy.new
         end
         @connections[database] = @proxies[database].create_session arm_config
-
+        printf "%p connect_database connection_id: %p\n", Thread.current.object_id, @connections[database].connection.id
         send(database).manual_primary_keys = manual_primary_keys(database)
       end
     end
