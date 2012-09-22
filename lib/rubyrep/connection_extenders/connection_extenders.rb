@@ -38,9 +38,16 @@ module RR
       @extenders ||= {}
       @extenders.merge! extender
     end
-
+    
+        
     # Dummy ActiveRecord descendant only used to create database connections.
     class DummyActiveRecord < ActiveRecord::Base
+      def self.retrieve_connection
+        #connection_handler.retrieve_connection(Replica::BaseConnection) 
+        res = super
+        printf STDERR,"### Thread: %p DummyActiveRecord::retrieve_connection: %p\n", Thread.current.object_id, res.id
+        res
+      end
     end
     
     # Creates an ActiveRecord database connection according to the provided +config+ connection hash.
@@ -65,7 +72,7 @@ module RR
       end
       connection = DummyActiveRecord.connection
       
-      printf "### Thread: %p db_connect_without_cache connection_id: %p\n", Thread.current.object_id, connection.id
+      printf STDERR,"### Thread: %p db_connect_without_cache connection_id: %p\n", Thread.current.object_id, connection.id
       
       # Delete the database connection from ActiveRecords's 'memory'
       #ActiveRecord::Base.connection_handler.connection_pools.delete DummyActiveRecord.name
@@ -91,7 +98,7 @@ module RR
 
       replication_module = ReplicationExtenders.extenders[config[:adapter].to_sym]
       connection.extend replication_module if replication_module
-      
+            
       connection
     end
     
