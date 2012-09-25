@@ -38,11 +38,17 @@ module RR
       @extenders ||= {}
       @extenders.merge! extender
     end
-
+    
     # Dummy ActiveRecord descendant only used to create database connections.
     class DummyActiveRecord < ActiveRecord::Base
     end
-    
+
+    # The above created class is no longer suitable to connect to multiple databases in ruby 1.9.3 and activerecord 3.2.8
+    # Creating classes dynamically seems to work at least for ruby 1.9.3 and activerecord 3.2.8
+    def self.create_and_inherit_from_activerecord_base
+      Object.const_set("DummyActiveRecord_#{rand.to_s.split('.').last}",Class.new(ActiveRecord::Base))
+    end
+            
     # Creates an ActiveRecord database connection according to the provided +config+ connection hash.
     # Possible values of this parameter are described in ActiveRecord::Base#establish_connection.
     # The database connection is extended with the correct ConnectionExtenders module.
@@ -52,6 +58,7 @@ module RR
     # To go around this, we delete ActiveRecord's memory of the existing database connection
     # as soon as it is created.
     def self.db_connect_without_cache(config)
+      activerecordclass = self.create_and_inherit_from_activerecord_base
       if RUBY_PLATFORM =~ /java/
         adapter = config[:adapter]
         
@@ -59,14 +66,15 @@ module RR
         # of the Adapters. E. g. instead of "postgresql", "jdbcpostgresql".
         adapter = 'jdbc' + adapter unless adapter =~ /^jdbc/
 
-        DummyActiveRecord.establish_connection(config.merge(:adapter => adapter))
+        activerecordclass.establish_connection(config.merge(:adapter => adapter))
       else
-        DummyActiveRecord.establish_connection(config)
+        activerecordclass.establish_connection(config)
       end
-      connection = DummyActiveRecord.connection
-      
+      connection = activerecordclass.connection
+            
       # Delete the database connection from ActiveRecords's 'memory'
-      ActiveRecord::Base.connection_handler.connection_pools.delete DummyActiveRecord.name
+      # Do we really need this any longer?
+      # ActiveRecord::Base.connection_handler.connection_pools.delete DummyActiveRecord.name
       
       extender = ""
       if RUBY_PLATFORM =~ /java/
@@ -87,7 +95,7 @@ module RR
 
       replication_module = ReplicationExtenders.extenders[config[:adapter].to_sym]
       connection.extend replication_module if replication_module
-      
+            
       connection
     end
     

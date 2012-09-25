@@ -211,7 +211,6 @@ module RR
           @proxies[database] = DatabaseProxy.new
         end
         @connections[database] = @proxies[database].create_session arm_config
-
         send(database).manual_primary_keys = manual_primary_keys(database)
       end
     end
