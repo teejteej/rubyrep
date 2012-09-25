@@ -41,13 +41,9 @@ module RR
     
         
     # Dummy ActiveRecord descendant only used to create database connections.
-    class DummyActiveRecord < ActiveRecord::Base
-      def self.retrieve_connection
-        #connection_handler.retrieve_connection(Replica::BaseConnection) 
-        res = super
-        printf STDERR,"### Thread: %p DummyActiveRecord::retrieve_connection: %p\n", Thread.current.object_id, res.id
-        res
-      end
+    # Dynamically create ActiveRecord-Base class to be able to connect to multiple different databases    
+    def self.create_and_inherit_from_activerecord_base
+      Object.const_set("DummyActiveRecord_#{rand.to_s.split('.').last}",Class.new(ActiveRecord::Base))
     end
     
     # Creates an ActiveRecord database connection according to the provided +config+ connection hash.
@@ -59,6 +55,7 @@ module RR
     # To go around this, we delete ActiveRecord's memory of the existing database connection
     # as soon as it is created.
     def self.db_connect_without_cache(config)
+      activerecordclass = self.create_and_inherit_from_activerecord_base
       if RUBY_PLATFORM =~ /java/
         adapter = config[:adapter]
         
@@ -66,18 +63,15 @@ module RR
         # of the Adapters. E. g. instead of "postgresql", "jdbcpostgresql".
         adapter = 'jdbc' + adapter unless adapter =~ /^jdbc/
 
-        DummyActiveRecord.establish_connection(config.merge(:adapter => adapter))
+        activerecordclass.establish_connection(config.merge(:adapter => adapter))
       else
-        DummyActiveRecord.establish_connection(config)
+        activerecordclass.establish_connection(config)
       end
-      connection = DummyActiveRecord.connection
-      
-      printf STDERR,"### Thread: %p db_connect_without_cache connection_id: %p\n", Thread.current.object_id, connection.id
-      
+      connection = activerecordclass.connection
+            
       # Delete the database connection from ActiveRecords's 'memory'
-      #ActiveRecord::Base.connection_handler.connection_pools.delete DummyActiveRecord.name
-      
-      ActiveRecord::Base.connection_handler.connection_pools.delete_if {|k,v| true}
+      # Do we really need this any longer?
+      # ActiveRecord::Base.connection_handler.connection_pools.delete DummyActiveRecord.name
       
       extender = ""
       if RUBY_PLATFORM =~ /java/

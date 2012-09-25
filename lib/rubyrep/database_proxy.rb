@@ -26,7 +26,6 @@ module RR
     # Create a ProxyConnection according to provided configuration Hash.
     # +config+ is a hash as described by ActiveRecord::Base#establish_connection
     def create_session(config)
-      printf STDERR,"### Thread: %p create_session %p\n", Thread.current.object_id, config
       session = ProxyConnection.new config
       self.session_register[session] = session
       session

@@ -85,27 +85,6 @@ module RR
     module PostgreSQLExtender
       RR::ConnectionExtenders.register :postgresql => self
       
-      
-      #def execute(sql, name = nil)
-      #  RR::ConnectionExtenders::DummyActiveRecord.connection_pool.with_connection do |conn|
-      #    printf "execute: %p\n", sql
-      #    super
-      #  end
-      #end
-
-      #def exec_cache(sql, binds)
-      #    printf "exec_no_cache: %p\n", sql
-      #    super
-      #end
-
-      def exec_no_cache(sql, binds)
-        RR::ConnectionExtenders::DummyActiveRecord.connection_pool.with_connection do |conn|
-          printf STDERR,"\n### Thread: %p Conn: %p %p exec_no_cache:\n### %p\n", Thread.current.object_id, conn.id, conn.execute("select current_database()").entries, sql
-          conn.conn.async_exec(sql)
-        end
-      end
-
-      
       # Returns an array of schemas in the current search path.
       def schemas
         unless @schemas
