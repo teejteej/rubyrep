@@ -2,13 +2,13 @@
 
 Gem::Specification.new do |s|
   s.name = %q{rubyrep}
-  s.version = "1.2.1.2012120701"
+  s.version = "1.2.1.2013010701"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = [%q{Arndt Lehmann}]
   s.date = %q{2012-10-09}
   s.description = %q{A rails based replication engine}
-  s.homepage = ''
+  s.homepage = %q{http://http://www.rubyrep.org}
   s.email = [%q{mail@arndtlehman.com}]
   s.executables = [%q{rubyrep}]
   s.extra_rdoc_files = [%q{History.txt}, %q{License.txt}, %q{Manifest.txt}, %q{README.txt}]
@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
   s.require_paths = [%q{lib}]
   s.rubyforge_project = %q{rubyrep}
   s.rubygems_version = %q{1.8.6}
-  s.summary = %q{}
+  s.summary = %q{A solution for asynchronous, master-master replication of relational databases}
 
   if s.respond_to? :specification_version then
     s.specification_version = 3
